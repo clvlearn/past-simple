@@ -23,19 +23,19 @@
     </div>
 
     <script>
-        // Path to the file
-        const filePath = '/data/English/Grammar/past_simple.txt';
-        let sentences = [];
-        let currentIndex = 0;
+// Path to the file
+const filePath = '/data/English/Grammar/past_simple.txt';
+let sentences = [];
+let currentIndex = 0;
 
 // Function to load sentences from the file
 async function loadSentences() {
     const response = await fetch(filePath);
     const text = await response.text();
-    const lines = text.split('\n');
+    const lines = text.split('\\n');
     return lines.map(line => {
-        const match = line.match(/^(.*)#(.*?)#(.*)\\|(.*?)$/);
-        return match ? { before: match[1], answer: match[2], after: match[3], fullVerb: match[4] } : null;
+        const match = line.match(/^(.*)#(.*?)#(.*)\\|(.*)$/);
+        return match ? { before: match[1].trim(), answer: match[2].trim(), after: match[3].trim(), fullVerb: match[4].trim() } : null;
     }).filter(item => item !== null);
 }
 
@@ -44,44 +44,46 @@ function renderQuestion() {
     const questionDiv = document.getElementById('question');
     const input = document.getElementById('answer-input');
 
+    // Retrieve current sentence
     const { before, after, fullVerb } = sentences[currentIndex];
+    
+    // Render the sentence with an input box for the missing word
     questionDiv.innerHTML = `${before} <strong>______</strong> ${after} <br><small>(Verb: ${fullVerb})</small>`;
     input.value = '';
     input.focus();
 }
 
+// Check the answer
+document.getElementById('check-btn').addEventListener('click', () => {
+    const input = document.getElementById('answer-input');
+    const userAnswer = input.value.trim();
+    const correctAnswer = sentences[currentIndex].answer;
 
-        // Check the answer
-        document.getElementById('check-btn').addEventListener('click', () => {
-            const input = document.getElementById('answer-input');
-            const userAnswer = input.value.trim();
-            const correctAnswer = sentences[currentIndex].answer;
+    const resultDiv = document.getElementById('result');
+    if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+        resultDiv.innerHTML = '<p class="text-success">Correct! 🎉</p>';
+        currentIndex++;
 
-            const resultDiv = document.getElementById('result');
-            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
-                resultDiv.innerHTML = '<p class="text-success">Correct! 🎉</p>';
-                currentIndex++;
-
-                if (currentIndex < sentences.length) {
-                    setTimeout(() => {
-                        resultDiv.innerHTML = '';
-                        renderQuestion();
-                    }, 1500);
-                } else {
-                    resultDiv.innerHTML = '<p class="text-success">You completed all the exercises! 🎉</p>';
-                }
-            } else {
-                resultDiv.innerHTML = '<p class="text-danger">Try again! ❌</p>';
-            }
-        });
-
-        // Initialize the exercise
-        async function initExercise() {
-            sentences = await loadSentences();
-            renderQuestion();
+        if (currentIndex < sentences.length) {
+            setTimeout(() => {
+                resultDiv.innerHTML = '';
+                renderQuestion();
+            }, 1500);
+        } else {
+            resultDiv.innerHTML = '<p class="text-success">You completed all the exercises! 🎉</p>';
         }
+    } else {
+        resultDiv.innerHTML = '<p class="text-danger">Try again! ❌</p>';
+    }
+});
 
-        initExercise();
+// Initialize the exercise
+async function initExercise() {
+    sentences = await loadSentences();
+    renderQuestion();
+}
+
+initExercise();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>

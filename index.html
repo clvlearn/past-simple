@@ -28,27 +28,28 @@
         let sentences = [];
         let currentIndex = 0;
 
-        // Function to load sentences from the file
-        async function loadSentences() {
-            const response = await fetch(filePath);
-            const text = await response.text();
-            const lines = text.split('\n');
-            return lines.map(line => {
-                const match = line.match(/^(.*)#(.*?)#(.*)$/);
-                return match ? { before: match[1], answer: match[2], after: match[3] } : null;
-            }).filter(item => item !== null);
-        }
+// Function to load sentences from the file
+async function loadSentences() {
+    const response = await fetch(filePath);
+    const text = await response.text();
+    const lines = text.split('\n');
+    return lines.map(line => {
+        const match = line.match(/^(.*)#(.*?)#(.*)\\|(.*?)$/);
+        return match ? { before: match[1], answer: match[2], after: match[3], fullVerb: match[4] } : null;
+    }).filter(item => item !== null);
+}
 
-        // Render the current question
-        function renderQuestion() {
-            const questionDiv = document.getElementById('question');
-            const input = document.getElementById('answer-input');
+// Render the current question
+function renderQuestion() {
+    const questionDiv = document.getElementById('question');
+    const input = document.getElementById('answer-input');
 
-            const { before, after } = sentences[currentIndex];
-            questionDiv.innerHTML = `${before} <strong>______</strong> ${after}`;
-            input.value = '';
-            input.focus();
-        }
+    const { before, after, fullVerb } = sentences[currentIndex];
+    questionDiv.innerHTML = `${before} <strong>______</strong> ${after} <br><small>(Verb: ${fullVerb})</small>`;
+    input.value = '';
+    input.focus();
+}
+
 
         // Check the answer
         document.getElementById('check-btn').addEventListener('click', () => {
